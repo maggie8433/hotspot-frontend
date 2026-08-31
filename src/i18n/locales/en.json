@@ -1,0 +1,39 @@
+{
+  "app": {
+    "title": "Taiwan Ecological Risk Map"
+  },
+
+  "layers": {
+    "title": "Map Layers",
+    "hotspotRisk": "Hotspot Risk",
+    "importantWildlifeHabitats": "Important Wildlife Habitats",
+    "naturalReserveAreas": "Natural Reserve Areas",
+    "natureReserves": "Nature Reserves",
+    "terrestrialWildlifeProtectedAreas": "Terrestrial Wildlife Protected Areas",
+    "ecologicalConservationCorridors": "Ecological Conservation Corridors",
+    "stateForestManagementAreas": "State Forest Management Areas",
+    "forestWildlifeDistribution": "Forest Wildlife Distribution"
+  },
+
+  "risk": {
+    "title": "Risk Level",
+    "veryHigh": "Very High",
+    "high": "High",
+    "moderate": "Moderate",
+    "low": "Low",
+    "veryLow": "Very Low"
+  },
+
+  "hotspot": {
+    "score": "Hotspot Score",
+    "rank": "Risk Rank",
+    "strayScore": "Stray Pressure",
+    "ecologicalScore": "Ecological Sensitivity",
+    "shelterScore": "Shelter Pressure"
+  },
+
+  "ecological": {
+    "name": "Name",
+    "forestDistrictName": "Forest District Name"
+  }
+}

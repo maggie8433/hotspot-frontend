@@ -1,0 +1,39 @@
+{
+  "app": {
+    "title": "台灣生態風險地圖"
+  },
+
+  "layers": {
+    "title": "地圖圖層",
+    "hotspotRisk": "熱點風險",
+    "importantWildlifeHabitats": "重要野生動物棲息環境",
+    "naturalReserveAreas": "自然保留區",
+    "natureReserves": "自然保護區",
+    "terrestrialWildlifeProtectedAreas": "陸域野生動物保護區",
+    "ecologicalConservationCorridors": "生態保育廊道",
+    "stateForestManagementAreas": "國有林事業區",
+    "forestWildlifeDistribution": "森林野生動物分布"
+  },
+
+  "risk": {
+    "title": "風險等級",
+    "veryHigh": "非常高",
+    "high": "高",
+    "moderate": "中等",
+    "low": "低",
+    "veryLow": "非常低"
+  },
+
+  "hotspot": {
+    "score": "熱點分數",
+    "rank": "風險排名",
+    "strayScore": "遊蕩動物壓力",
+    "ecologicalScore": "生態敏感度",
+    "shelterScore": "收容壓力"
+  },
+
+  "ecological": {
+    "name": "名稱",
+    "forestDistrictName": "事業區名稱"
+  }
+}
