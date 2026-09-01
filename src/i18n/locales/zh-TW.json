@@ -12,7 +12,8 @@
     "terrestrialWildlifeProtectedAreas": "陸域野生動物保護區",
     "ecologicalConservationCorridors": "生態保育廊道",
     "stateForestManagementAreas": "國有林事業區",
-    "forestWildlifeDistribution": "森林野生動物分布"
+    "forestWildlifeDistribution": "森林野生動物分布",
+    "wildlifeStrayAttacks": "遊蕩動物攻擊野生動物"
   },
 
   "risk": {
@@ -35,5 +36,15 @@
   "ecological": {
     "name": "名稱",
     "forestDistrictName": "事業區名稱"
+  },
+  "wildlifeAttack": {
+    "title": "遊蕩動物攻擊野生動物",
+    "deathRate": "死亡率",
+    "totalAttacks": "攻擊事件總數",
+    "dogAttacks": "犬隻攻擊事件",
+    "catAttacks": "貓隻攻擊事件",
+    "protectedSpecies": "受攻擊保育類物種數",
+    "generalSpecies": "受攻擊一般類物種數",
+    "locationNote": "攻擊紀錄以彙整方式呈現，原始紀錄不包含個別事件的地理座標。"
   }
 }

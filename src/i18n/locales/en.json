@@ -12,7 +12,8 @@
     "terrestrialWildlifeProtectedAreas": "Terrestrial Wildlife Protected Areas",
     "ecologicalConservationCorridors": "Ecological Conservation Corridors",
     "stateForestManagementAreas": "State Forest Management Areas",
-    "forestWildlifeDistribution": "Forest Wildlife Distribution"
+    "forestWildlifeDistribution": "Forest Wildlife Distribution",
+    "wildlifeStrayAttacks": "Wildlife Attacks by Stray Animals"
   },
 
   "risk": {
@@ -35,5 +36,15 @@
   "ecological": {
     "name": "Name",
     "forestDistrictName": "Forest District Name"
+  },
+  "wildlifeAttack": {
+    "title": "Wildlife Attacks by Stray Animals",
+    "deathRate": "Death Rate",
+    "totalAttacks": "Total Attacks",
+    "dogAttacks": "Dog Attacks",
+    "catAttacks": "Cat Attacks",
+    "protectedSpecies": "Protected Species Attacked",
+    "generalSpecies": "General Species Attacked",
+    "locationNote": "Attack records are summarised for display and do not contain individual geographic coordinates."
   }
 }

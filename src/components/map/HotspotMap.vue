@@ -7,6 +7,7 @@ import 'leaflet/dist/leaflet.css'
 
 import { getHotspotGeo } from '@/api/hotspotApi'
 import { getEcologicalLayer } from '@/api/ecologicalLayerApi'
+import { getWildlifeAttackGeo } from '@/api/wildlifeAttackApi'
 import LayerControl from '@/components/map/LayerControl.vue'
 
 const mapContainer = ref(null)
@@ -20,6 +21,7 @@ let hotspotLayer = null
 let taiwanBoundaryLayer = null
 let cityLabelLayer = null
 let hotspotGeoJson = null
+let wildlifeAttackLayer = null
 
 // Cache loaded layers so switching them back on does not require another API request.
 const leafletLayers = {}
@@ -36,6 +38,7 @@ const visibleLayers = reactive({
   'ecological-conservation-corridors': false,
   'state-forest-management-areas': false,
   'forest-wildlife-distribution': false,
+  'wildlife-stray-attacks': false,
 })
 
 // Used by LayerControl to show which layers are waiting for data.
@@ -48,6 +51,7 @@ const loadingLayers = reactive({
   'ecological-conservation-corridors': false,
   'state-forest-management-areas': false,
   'forest-wildlife-distribution': false,
+  'wildlife-stray-attacks': false,
 })
 
 const INITIAL_TAIWAN_BOUNDS = L.latLngBounds([21.7, 119.2], [25.5, 122.1])
@@ -192,6 +196,16 @@ function getEcologicalStyle(layerName) {
         fillColor: '#90A4AE',
         fillOpacity: 0.25,
       }
+  }
+}
+// show WildlifeAttack
+function wildlifeAttackStyle() {
+  return {
+    color: '#D84315',
+    weight: 3,
+    opacity: 1,
+    fillColor: '#F4511E',
+    fillOpacity: 0.45,
   }
 }
 
@@ -456,6 +470,127 @@ async function loadHotspotLayer() {
   }
 }
 
+function bindWildlifeAttackPopup(feature, layer) {
+  const properties = feature.properties || {}
+
+  layer.on('click', () => {
+    const cityName = isChinese()
+      ? properties.cityNameZh || properties.cityNameEn || '-'
+      : properties.cityNameEn || properties.cityNameZh || '-'
+
+    const deathRate =
+      properties.deathRate !== null && properties.deathRate !== undefined
+        ? `${Number(properties.deathRate).toFixed(2)}%`
+        : '-'
+
+    const popupContent = `
+      <div class="wildlife-attack-popup">
+
+        <h3>
+          ${cityName}
+        </h3>
+
+        <h4>
+          ${t('wildlifeAttack.title')}
+        </h4>
+
+        <p>
+          <strong>
+            ${t('wildlifeAttack.deathRate')}:
+          </strong>
+
+          ${deathRate}
+        </p>
+
+        <p>
+          <strong>
+            ${t('wildlifeAttack.totalAttacks')}:
+          </strong>
+
+          ${properties.totalAttacks ?? '-'}
+        </p>
+
+        <hr>
+
+        <p>
+          <strong>
+            ${t('wildlifeAttack.dogAttacks')}:
+          </strong>
+
+          ${properties.dogAttacks ?? '-'}
+        </p>
+
+        <p>
+          <strong>
+            ${t('wildlifeAttack.catAttacks')}:
+          </strong>
+
+          ${properties.catAttacks ?? '-'}
+        </p>
+
+        <hr>
+
+        <p>
+          <strong>
+            ${t('wildlifeAttack.protectedSpecies')}:
+          </strong>
+
+          ${properties.protectedSpeciesCount ?? '-'}
+        </p>
+
+        <p>
+          <strong>
+            ${t('wildlifeAttack.generalSpecies')}:
+          </strong>
+
+          ${properties.generalSpeciesCount ?? '-'}
+        </p>
+
+        <p class="wildlife-attack-note">
+          ${t('wildlifeAttack.locationNote')}
+        </p>
+
+      </div>
+    `
+
+    layer
+      .bindPopup(popupContent, {
+        maxWidth: 330,
+      })
+      .openPopup()
+  })
+}
+
+async function loadWildlifeAttackLayer(signal) {
+  if (wildlifeAttackLayer) {
+    return wildlifeAttackLayer
+  }
+
+  const geoJson = await getWildlifeAttackGeo(signal)
+
+  if (signal.aborted) {
+    return null
+  }
+
+  if (!geoJson || !geoJson.features || geoJson.features.length === 0) {
+    throw new Error('No wildlife attack data returned.')
+  }
+
+  wildlifeAttackLayer = L.geoJSON(geoJson, {
+    pane: 'wildlifeAttack',
+
+    style: wildlifeAttackStyle,
+
+    onEachFeature(feature, featureLayer) {
+      bindWildlifeAttackPopup(feature, featureLayer)
+    },
+  })
+
+  leafletLayers['wildlife-stray-attacks'] = wildlifeAttackLayer
+
+  return wildlifeAttackLayer
+}
+
 function createEcologicalLeafletLayer(geoJson, layerName) {
   // Wildlife distribution is displayed as points only and intentionally has no popup.
   if (layerName === 'forest-wildlife-distribution') {
@@ -528,6 +663,67 @@ async function toggleLayer(layerName) {
       hotspotLayer.addTo(map)
     } else if (hotspotLayer && map.hasLayer(hotspotLayer)) {
       map.removeLayer(hotspotLayer)
+    }
+
+    return
+  }
+
+  if (layerName === 'wildlife-stray-attacks') {
+    if (!shouldShow) {
+      const controller = ecologicalRequestControllers[layerName]
+
+      if (controller) {
+        controller.abort()
+
+        delete ecologicalRequestControllers[layerName]
+      }
+
+      loadingLayers[layerName] = false
+
+      if (wildlifeAttackLayer && map.hasLayer(wildlifeAttackLayer)) {
+        map.removeLayer(wildlifeAttackLayer)
+      }
+
+      return
+    }
+
+    if (wildlifeAttackLayer) {
+      wildlifeAttackLayer.addTo(map)
+      return
+    }
+
+    try {
+      loadingLayers[layerName] = true
+
+      const controller = new AbortController()
+
+      ecologicalRequestControllers[layerName] = controller
+
+      const layer = await loadWildlifeAttackLayer(controller.signal)
+
+      if (controller.signal.aborted) {
+        return
+      }
+
+      if (!visibleLayers[layerName]) {
+        return
+      }
+
+      if (layer) {
+        layer.addTo(map)
+      }
+
+      delete ecologicalRequestControllers[layerName]
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        return
+      }
+
+      visibleLayers[layerName] = false
+
+      console.error('Unable to load wildlife attack layer:', error)
+    } finally {
+      loadingLayers[layerName] = false
     }
 
     return
@@ -644,6 +840,9 @@ onMounted(async () => {
   map.createPane('cityLabels')
   map.getPane('cityLabels').style.zIndex = 650
 
+  map.createPane('wildlifeAttack')
+  map.getPane('wildlifeAttack').style.zIndex = 450
+
   map.getPane('cityLabels').style.pointerEvents = 'none'
 
   map.setView([23.7, 121], 7)
@@ -726,5 +925,41 @@ onBeforeUnmount(() => {
 
 :deep(.hotspot-popup) {
   min-width: 190px;
+}
+
+:deep(.wildlife-attack-popup) {
+  min-width: 230px;
+}
+
+:deep(.wildlife-attack-popup h3) {
+  margin-top: 0;
+  margin-bottom: 4px;
+}
+
+:deep(.wildlife-attack-popup h4) {
+  margin-top: 0;
+  margin-bottom: 12px;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  color: #d84315;
+}
+
+:deep(.wildlife-attack-popup p) {
+  margin: 6px 0;
+}
+
+:deep(.wildlife-attack-note) {
+  margin-top: 12px !important;
+
+  padding-top: 8px;
+
+  border-top: 1px solid #dddddd;
+
+  font-size: 11px;
+  line-height: 1.4;
+
+  color: #666666;
 }
 </style>

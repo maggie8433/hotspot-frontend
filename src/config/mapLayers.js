@@ -48,4 +48,9 @@ export const MAP_LAYERS = [
     // Bright magenta-purple
     color: '#E040FB',
   },
+  {
+    id: 'wildlife-stray-attacks',
+    translationKey: 'layers.wildlifeStrayAttacks',
+    color: '#F4511E',
+  },
 ]
