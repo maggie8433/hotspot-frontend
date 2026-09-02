@@ -13,7 +13,8 @@
     "ecologicalConservationCorridors": "Ecological Conservation Corridors",
     "stateForestManagementAreas": "State Forest Management Areas",
     "forestWildlifeDistribution": "Forest Wildlife Distribution",
-    "wildlifeStrayAttacks": "Wildlife Attacks by Stray Animals"
+    "wildlifeStrayAttacks": "Wildlife Attacks by Stray Animals",
+    "wildlifeRescueCentres": "Wildlife Rescue Centres"
   },
 
   "risk": {
@@ -45,6 +46,15 @@
     "catAttacks": "Cat Attacks",
     "protectedSpecies": "Protected Species Attacked",
     "generalSpecies": "General Species Attacked",
-    "locationNote": "Attack records are summarised for display and do not contain individual geographic coordinates."
+    "locationNote": "Attack records are summarised for display and do not contain individual geographic coordinates.",
+    "wildlifeRescueCentres": "Wildlife Rescue Centres"
+  },
+  "wildlifeRescue": {
+    "title": "Wildlife Rescue Centre",
+    "address": "Address",
+    "phone": "Phone",
+    "animalScope": "Animals Accepted",
+    "notes": "Important Information",
+    "contactFirst": "Please contact the rescue centre before transporting an injured wild animal."
   }
 }

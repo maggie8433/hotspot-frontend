@@ -57,7 +57,7 @@ function handleLayerToggle(layerId) {
         <span
           class="layer-color"
           :class="{
-            'point-symbol': layer.id === 'forest-wildlife-distribution',
+            'point-symbol': layer.id === 'point',
           }"
           :style="{
             backgroundColor: layer.color,
@@ -339,6 +339,19 @@ function handleLayerToggle(layerId) {
   /* The spinner is enough feedback on smaller screens where space is limited. */
   .loading-text {
     display: none;
+  }
+
+  .layer-swatch {
+    width: 14px;
+    height: 14px;
+
+    display: inline-block;
+
+    border-radius: 2px;
+  }
+
+  .layer-swatch.point-swatch {
+    border-radius: 50%;
   }
 }
 </style>

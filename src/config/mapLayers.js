@@ -53,4 +53,10 @@ export const MAP_LAYERS = [
     translationKey: 'layers.wildlifeStrayAttacks',
     color: '#F4511E',
   },
+  {
+    id: 'wildlife-rescue-centres',
+    translationKey: 'layers.wildlifeRescueCentres',
+    color: '#00897B',
+    type: 'point',
+  },
 ]

@@ -9,6 +9,7 @@ import { getHotspotGeo } from '@/api/hotspotApi'
 import { getEcologicalLayer } from '@/api/ecologicalLayerApi'
 import { getWildlifeAttackGeo } from '@/api/wildlifeAttackApi'
 import LayerControl from '@/components/map/LayerControl.vue'
+import { getWildlifeRescueCentresGeo } from '@/api/wildlifeRescueCentreApi'
 
 const mapContainer = ref(null)
 
@@ -22,6 +23,7 @@ let taiwanBoundaryLayer = null
 let cityLabelLayer = null
 let hotspotGeoJson = null
 let wildlifeAttackLayer = null
+let wildlifeRescueCentreLayer = null
 
 // Cache loaded layers so switching them back on does not require another API request.
 const leafletLayers = {}
@@ -39,6 +41,7 @@ const visibleLayers = reactive({
   'state-forest-management-areas': false,
   'forest-wildlife-distribution': false,
   'wildlife-stray-attacks': false,
+  'wildlife-rescue-centres': false,
 })
 
 // Used by LayerControl to show which layers are waiting for data.
@@ -52,6 +55,7 @@ const loadingLayers = reactive({
   'state-forest-management-areas': false,
   'forest-wildlife-distribution': false,
   'wildlife-stray-attacks': false,
+  'wildlife-rescue-centres': false,
 })
 
 const INITIAL_TAIWAN_BOUNDS = L.latLngBounds([21.7, 119.2], [25.5, 122.1])
@@ -305,71 +309,79 @@ function createCityLabels(geoJson) {
 function bindHotspotPopup(feature, layer) {
   const properties = feature.properties || {}
 
-  // Build the popup on click so it always uses the currently selected language.
-  layer.on('click', () => {
+  // Build the popup when the user clicks so the current language is used.
+  layer.on('click', (event) => {
     const cityName = getCityName(properties)
 
     const popupContent = `
-        <div class="hotspot-popup">
+      <div class="hotspot-popup">
 
-          <h3>
-            ${cityName}
-          </h3>
+        <h3>
+          ${cityName}
+        </h3>
 
-          <p>
-            <strong>
-              ${t('risk.title')}:
-            </strong>
+        <p>
+          <strong>
+            ${t('risk.title')}:
+          </strong>
 
-            ${getRiskTranslation(properties.riskLevel)}
-          </p>
+          ${getRiskTranslation(properties.riskLevel)}
+        </p>
 
-          <p>
-            <strong>
-              ${t('hotspot.score')}:
-            </strong>
+        <p>
+          <strong>
+            ${t('hotspot.score')}:
+          </strong>
 
-            ${formatScore(properties.hotspotScore)}
-          </p>
+          ${formatScore(properties.hotspotScore)}
+        </p>
 
-          <p>
-            <strong>
-              ${t('hotspot.rank')}:
-            </strong>
+        <p>
+          <strong>
+            ${t('hotspot.rank')}:
+          </strong>
 
-            ${properties.riskRank ?? '-'}
-          </p>
+          ${properties.riskRank ?? '-'}
+        </p>
 
-          <hr>
+        <hr>
 
-          <p>
-            <strong>
-              ${t('hotspot.strayScore')}:
-            </strong>
+        <p>
+          <strong>
+            ${t('hotspot.strayScore')}:
+          </strong>
 
-            ${formatScore(properties.strayScore)}
-          </p>
+          ${formatScore(properties.strayScore)}
+        </p>
 
-          <p>
-            <strong>
-              ${t('hotspot.ecologicalScore')}:
-            </strong>
+        <p>
+          <strong>
+            ${t('hotspot.ecologicalScore')}:
+          </strong>
 
-            ${formatScore(properties.ecologicalScore)}
-          </p>
+          ${formatScore(properties.ecologicalScore)}
+        </p>
 
-          <p>
-            <strong>
-              ${t('hotspot.shelterScore')}:
-            </strong>
+        <p>
+          <strong>
+            ${t('hotspot.shelterScore')}:
+          </strong>
 
-            ${formatScore(properties.shelterScore)}
-          </p>
+          ${formatScore(properties.shelterScore)}
+        </p>
 
-        </div>
-      `
+      </div>
+    `
 
-    layer.bindPopup(popupContent).openPopup()
+    L.popup({
+      maxWidth: 300,
+
+      // Do not move the whole map when the popup opens.
+      autoPan: false,
+    })
+      .setLatLng(event.latlng)
+      .setContent(popupContent)
+      .openOn(map)
   })
 }
 
@@ -591,6 +603,178 @@ async function loadWildlifeAttackLayer(signal) {
   return wildlifeAttackLayer
 }
 
+function getRescueCentreName(properties) {
+  if (!properties) {
+    return '-'
+  }
+
+  if (isChinese()) {
+    return properties.nameZh || properties.nameEn || '-'
+  }
+
+  return properties.nameEn || properties.nameZh || '-'
+}
+
+function getRescueCentreAddress(properties) {
+  if (!properties) {
+    return '-'
+  }
+
+  if (isChinese()) {
+    return properties.addressZh || properties.addressEn || '-'
+  }
+
+  return properties.addressEn || properties.addressZh || '-'
+}
+
+function getRescueCentreAnimalScope(properties) {
+  if (!properties) {
+    return '-'
+  }
+
+  if (isChinese()) {
+    return properties.animalScopeZh || properties.animalScopeEn || '-'
+  }
+
+  return properties.animalScopeEn || properties.animalScopeZh || '-'
+}
+
+function getRescueCentreNotes(properties) {
+  if (!properties) {
+    return '-'
+  }
+
+  if (isChinese()) {
+    return properties.notesZh || properties.notesEn || '-'
+  }
+
+  return properties.notesEn || properties.notesZh || '-'
+}
+
+function rescueCentreMarker(feature, latlng) {
+  return L.circleMarker(latlng, {
+    pane: 'wildlifeRescueCentres',
+
+    radius: 8,
+
+    color: '#00695C',
+
+    weight: 2,
+
+    opacity: 1,
+
+    fillColor: '#26A69A',
+
+    fillOpacity: 0.95,
+  })
+}
+
+function bindRescueCentrePopup(feature, layer) {
+  const properties = feature.properties || {}
+
+  layer.on('click', () => {
+    const name = getRescueCentreName(properties)
+
+    const address = getRescueCentreAddress(properties)
+
+    const animalScope = getRescueCentreAnimalScope(properties)
+
+    const notes = getRescueCentreNotes(properties)
+
+    const phone = properties.phone || '-'
+
+    const popupContent = `
+        <div class="rescue-centre-popup">
+
+          <h3>
+            ${name}
+          </h3>
+
+          <div class="rescue-centre-row">
+            <strong>
+              ${t('wildlifeRescue.address')}:
+            </strong>
+
+            <span>
+              ${address}
+            </span>
+          </div>
+
+          <div class="rescue-centre-row">
+            <strong>
+              ${t('wildlifeRescue.phone')}:
+            </strong>
+
+            <a href="tel:${phone}">
+              ${phone}
+            </a>
+          </div>
+
+          <div class="rescue-centre-row">
+            <strong>
+              ${t('wildlifeRescue.animalScope')}:
+            </strong>
+
+            <span>
+              ${animalScope}
+            </span>
+          </div>
+
+          <div class="rescue-centre-row">
+            <strong>
+              ${t('wildlifeRescue.notes')}:
+            </strong>
+
+            <span>
+              ${notes}
+            </span>
+          </div>
+
+          <div class="rescue-centre-warning">
+            ${t('wildlifeRescue.contactFirst')}
+          </div>
+
+        </div>
+      `
+
+    layer
+      .bindPopup(popupContent, {
+        maxWidth: 360,
+      })
+      .openPopup()
+  })
+}
+
+async function loadWildlifeRescueCentreLayer(signal) {
+  if (wildlifeRescueCentreLayer) {
+    return wildlifeRescueCentreLayer
+  }
+
+  const geoJson = await getWildlifeRescueCentresGeo(signal)
+
+  if (signal.aborted) {
+    return null
+  }
+
+  if (!geoJson || !Array.isArray(geoJson.features)) {
+    throw new Error('Invalid wildlife rescue centre GeoJSON.')
+  }
+
+  wildlifeRescueCentreLayer = L.geoJSON(geoJson, {
+    pane: 'wildlifeRescueCentres',
+
+    pointToLayer: rescueCentreMarker,
+
+    onEachFeature(feature, featureLayer) {
+      bindRescueCentrePopup(feature, featureLayer)
+    },
+  })
+
+  leafletLayers['wildlife-rescue-centres'] = wildlifeRescueCentreLayer
+
+  return wildlifeRescueCentreLayer
+}
+
 function createEcologicalLeafletLayer(geoJson, layerName) {
   // Wildlife distribution is displayed as points only and intentionally has no popup.
   if (layerName === 'forest-wildlife-distribution') {
@@ -729,6 +913,68 @@ async function toggleLayer(layerName) {
     return
   }
 
+  if (layerName === 'wildlife-rescue-centres') {
+    if (!shouldShow) {
+      const controller = ecologicalRequestControllers[layerName]
+
+      if (controller) {
+        controller.abort()
+
+        delete ecologicalRequestControllers[layerName]
+      }
+
+      loadingLayers[layerName] = false
+
+      if (wildlifeRescueCentreLayer && map.hasLayer(wildlifeRescueCentreLayer)) {
+        map.removeLayer(wildlifeRescueCentreLayer)
+      }
+
+      return
+    }
+
+    if (wildlifeRescueCentreLayer) {
+      wildlifeRescueCentreLayer.addTo(map)
+
+      return
+    }
+
+    try {
+      loadingLayers[layerName] = true
+
+      const controller = new AbortController()
+
+      ecologicalRequestControllers[layerName] = controller
+
+      const layer = await loadWildlifeRescueCentreLayer(controller.signal)
+
+      if (controller.signal.aborted) {
+        return
+      }
+
+      if (!visibleLayers[layerName]) {
+        return
+      }
+
+      if (layer) {
+        layer.addTo(map)
+      }
+
+      delete ecologicalRequestControllers[layerName]
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        return
+      }
+
+      visibleLayers[layerName] = false
+
+      console.error('Unable to load wildlife rescue centres:', error)
+    } finally {
+      loadingLayers[layerName] = false
+    }
+
+    return
+  }
+
   if (!shouldShow) {
     const controller = ecologicalRequestControllers[layerName]
 
@@ -842,6 +1088,10 @@ onMounted(async () => {
 
   map.createPane('wildlifeAttack')
   map.getPane('wildlifeAttack').style.zIndex = 450
+
+  map.createPane('wildlifeRescueCentres')
+
+  map.getPane('wildlifeRescueCentres').style.zIndex = 610
 
   map.getPane('cityLabels').style.pointerEvents = 'none'
 
@@ -961,5 +1211,60 @@ onBeforeUnmount(() => {
   line-height: 1.4;
 
   color: #666666;
+}
+
+:deep(.rescue-centre-popup) {
+  min-width: 250px;
+}
+
+:deep(.rescue-centre-popup h3) {
+  margin: 0 0 12px;
+
+  font-size: 16px;
+  line-height: 1.35;
+
+  color: #00695c;
+}
+
+:deep(.rescue-centre-row) {
+  display: flex;
+  flex-direction: column;
+
+  margin-bottom: 9px;
+}
+
+:deep(.rescue-centre-row strong) {
+  margin-bottom: 2px;
+
+  font-size: 12px;
+
+  color: #555;
+}
+
+:deep(.rescue-centre-row span),
+:deep(.rescue-centre-row a) {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+:deep(.rescue-centre-row a) {
+  text-decoration: none;
+
+  color: #00695c;
+}
+
+:deep(.rescue-centre-warning) {
+  margin-top: 12px;
+
+  padding: 9px 10px;
+
+  border-radius: 6px;
+
+  background: #f2f7f5;
+
+  font-size: 11px;
+  line-height: 1.45;
+
+  color: #555;
 }
 </style>
