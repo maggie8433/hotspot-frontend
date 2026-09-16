@@ -4,6 +4,8 @@ import { onMounted, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import '@/assets/styles/hotspot-map.css'
+import { RISK_LEVELS } from '@/config/riskLevels'
 
 import { getHotspotGeo } from '@/api/hotspotApi'
 import { getEcologicalLayer } from '@/api/ecologicalLayerApi'
@@ -89,25 +91,9 @@ function taiwanBoundaryStyle() {
 }
 
 function getRiskColor(riskLevel) {
-  switch (riskLevel) {
-    case 'Very High':
-      return '#8B3A3A'
+  const risk = RISK_LEVELS.find((item) => item.value === riskLevel)
 
-    case 'High':
-      return '#B85C4B'
-
-    case 'Moderate':
-      return '#D89A5B'
-
-    case 'Low':
-      return '#D8C77B'
-
-    case 'Very Low':
-      return '#A8B88A'
-
-    default:
-      return '#CCCCCC'
-  }
+  return risk?.color || '#CCCCCC'
 }
 
 function getRiskTranslation(riskLevel) {
@@ -142,74 +128,114 @@ function hotspotStyle(feature) {
   }
 }
 
-// Each ecological dataset uses a different colour so overlapping layers remain distinguishable.
+// Each ecological dataset uses a different color so overlapping layers remain distinguishable.
 function getEcologicalStyle(layerName) {
   switch (layerName) {
+    // Important Wildlife Habitats
+    // Strong emerald green.
     case 'important-wildlife-habitats':
       return {
-        color: '#1B5E20',
+        color: '#007A4D',
         weight: 2.5,
-        fillColor: '#4CAF50',
-        fillOpacity: 0.28,
+
+        fillColor: '#00A86B',
+        fillOpacity: 0.32,
+
+        opacity: 1,
       }
 
+    // Natural Reserve Areas
+    // Bright pink
     case 'natural-reserve-areas':
       return {
-        color: '#00695C',
+        color: '#C2185B',
+
         weight: 2.5,
-        fillColor: '#26A69A',
-        fillOpacity: 0.26,
+
+        fillColor: '#FF4081',
+
+        fillOpacity: 0.32,
+
+        opacity: 1,
       }
 
+    // Nature Reserves
+    // Violet
     case 'nature-reserves':
       return {
-        color: '#827717',
+        color: '#5E35B1',
         weight: 2.5,
-        fillColor: '#C0CA33',
-        fillOpacity: 0.28,
+
+        fillColor: '#7E57C2',
+        fillOpacity: 0.3,
+
+        opacity: 1,
       }
 
+    // Terrestrial Wildlife Protected Areas
+    // Blue
     case 'terrestrial-wildlife-protected-areas':
       return {
-        color: '#6D4C41',
+        color: '#0D47A1',
         weight: 2.5,
-        fillColor: '#A1887F',
-        fillOpacity: 0.28,
+
+        fillColor: '#1976D2',
+        fillOpacity: 0.27,
+
+        opacity: 1,
       }
 
+    // Ecological Conservation Corridors
+    // Bright cyan/sky blue.
     case 'ecological-conservation-corridors':
       return {
-        color: '#1565C0',
+        color: '#00838F',
         weight: 2.5,
-        fillColor: '#42A5F5',
-        fillOpacity: 0.22,
+
+        fillColor: '#00BCD4',
+        fillOpacity: 0.25,
+
+        opacity: 1,
       }
 
+    // State Forest Management Areas
+    // Bright orange.
     case 'state-forest-management-areas':
       return {
-        color: '#EF6C00',
+        color: '#E65100',
         weight: 2.5,
-        fillColor: '#FFB74D',
-        fillOpacity: 0.23,
+
+        fillColor: '#FF9800',
+        fillOpacity: 0.24,
+
+        opacity: 1,
       }
 
     default:
       return {
         color: '#455A64',
         weight: 2.5,
+
         fillColor: '#90A4AE',
         fillOpacity: 0.25,
+
+        opacity: 1,
       }
   }
 }
+
 // show WildlifeAttack
 function wildlifeAttackStyle() {
   return {
-    color: '#D84315',
+    color: '#BF360C',
+
     weight: 3,
+
     opacity: 1,
-    fillColor: '#F4511E',
-    fillOpacity: 0.45,
+
+    fillColor: '#FF3D00',
+
+    fillOpacity: 0.42,
   }
 }
 
@@ -657,15 +683,17 @@ function rescueCentreMarker(feature, latlng) {
 
     radius: 8,
 
-    color: '#00695C',
+    // Dark teal border.
+    color: '#004D40',
 
-    weight: 2,
+    weight: 2.5,
 
     opacity: 1,
 
-    fillColor: '#26A69A',
+    // Bright teal centre.
+    fillColor: '#00897B',
 
-    fillOpacity: 0.95,
+    fillOpacity: 1,
   })
 }
 
@@ -784,11 +812,18 @@ function createEcologicalLeafletLayer(geoJson, layerName) {
       pointToLayer(feature, latlng) {
         return L.circleMarker(latlng, {
           pane: 'ecological',
-          radius: 6,
-          color: '#7B1FA2',
+
+          radius: 5,
+
+          color: '#880E9F',
+
           weight: 1.5,
-          fillColor: '#E040FB',
-          fillOpacity: 0.95,
+
+          opacity: 1,
+
+          fillColor: '#D500F9',
+
+          fillOpacity: 0.9,
         })
       },
     })
@@ -1124,147 +1159,3 @@ onBeforeUnmount(() => {
     <div ref="mapContainer" class="map"></div>
   </div>
 </template>
-
-<style scoped>
-.map-wrapper {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.map {
-  width: 100%;
-  height: 100%;
-  background: #eef3f5;
-}
-
-/* Keep city names readable over overlapping map layers. */
-:deep(.city-label-container) {
-  background: transparent;
-  border: none;
-}
-
-:deep(.city-label) {
-  white-space: nowrap;
-  font-size: 12px;
-  font-weight: 600;
-  color: #222222;
-  text-align: center;
-
-  transform: translate(-50%, -50%);
-
-  text-shadow:
-    -1px -1px 0 #ffffff,
-    1px -1px 0 #ffffff,
-    -1px 1px 0 #ffffff,
-    1px 1px 0 #ffffff;
-}
-
-:deep(.leaflet-popup-content h3) {
-  margin-top: 0;
-  margin-bottom: 10px;
-}
-
-:deep(.leaflet-popup-content p) {
-  margin: 6px 0;
-}
-
-:deep(.ecological-popup) {
-  min-width: 160px;
-}
-
-:deep(.hotspot-popup) {
-  min-width: 190px;
-}
-
-:deep(.wildlife-attack-popup) {
-  min-width: 230px;
-}
-
-:deep(.wildlife-attack-popup h3) {
-  margin-top: 0;
-  margin-bottom: 4px;
-}
-
-:deep(.wildlife-attack-popup h4) {
-  margin-top: 0;
-  margin-bottom: 12px;
-
-  font-size: 13px;
-  font-weight: 600;
-
-  color: #d84315;
-}
-
-:deep(.wildlife-attack-popup p) {
-  margin: 6px 0;
-}
-
-:deep(.wildlife-attack-note) {
-  margin-top: 12px !important;
-
-  padding-top: 8px;
-
-  border-top: 1px solid #dddddd;
-
-  font-size: 11px;
-  line-height: 1.4;
-
-  color: #666666;
-}
-
-:deep(.rescue-centre-popup) {
-  min-width: 250px;
-}
-
-:deep(.rescue-centre-popup h3) {
-  margin: 0 0 12px;
-
-  font-size: 16px;
-  line-height: 1.35;
-
-  color: #00695c;
-}
-
-:deep(.rescue-centre-row) {
-  display: flex;
-  flex-direction: column;
-
-  margin-bottom: 9px;
-}
-
-:deep(.rescue-centre-row strong) {
-  margin-bottom: 2px;
-
-  font-size: 12px;
-
-  color: #555;
-}
-
-:deep(.rescue-centre-row span),
-:deep(.rescue-centre-row a) {
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-:deep(.rescue-centre-row a) {
-  text-decoration: none;
-
-  color: #00695c;
-}
-
-:deep(.rescue-centre-warning) {
-  margin-top: 12px;
-
-  padding: 9px 10px;
-
-  border-radius: 6px;
-
-  background: #f2f7f5;
-
-  font-size: 11px;
-  line-height: 1.45;
-
-  color: #555;
-}
-</style>

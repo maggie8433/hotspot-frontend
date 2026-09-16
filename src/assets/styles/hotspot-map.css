@@ -1,0 +1,155 @@
+/* Main map container */
+
+.map-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.map {
+  width: 100%;
+  height: 100%;
+  background: #eef3f5;
+}
+
+/* City labels */
+
+.city-label-container {
+  background: transparent;
+  border: none;
+}
+
+.city-label {
+  white-space: nowrap;
+
+  font-size: 12px;
+  font-weight: 600;
+  color: #222222;
+  text-align: center;
+
+  transform: translate(-50%, -50%);
+
+  text-shadow:
+    -1px -1px 0 #ffffff,
+    1px -1px 0 #ffffff,
+    -1px 1px 0 #ffffff,
+    1px 1px 0 #ffffff;
+}
+
+/* Leaflet popup */
+
+.leaflet-popup-content h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.leaflet-popup-content p {
+  margin: 6px 0;
+}
+
+/* Ecological layer popup */
+
+.ecological-popup {
+  min-width: 160px;
+}
+
+/* Hotspot popup */
+
+.hotspot-popup {
+  min-width: 190px;
+}
+
+/* Wildlife attack popup */
+
+.wildlife-attack-popup {
+  min-width: 230px;
+}
+
+.wildlife-attack-popup h3 {
+  margin-top: 0;
+  margin-bottom: 4px;
+}
+
+.wildlife-attack-popup h4 {
+  margin-top: 0;
+  margin-bottom: 12px;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  color: #d84315;
+}
+
+.wildlife-attack-popup p {
+  margin: 6px 0;
+}
+
+.wildlife-attack-note {
+  margin-top: 12px !important;
+
+  padding-top: 8px;
+
+  border-top: 1px solid #dddddd;
+
+  font-size: 11px;
+  line-height: 1.4;
+
+  color: #666666;
+}
+
+/* Wildlife rescue centre popup */
+
+.rescue-centre-popup {
+  min-width: 250px;
+}
+
+.rescue-centre-popup h3 {
+  margin: 0 0 12px;
+
+  font-size: 16px;
+  line-height: 1.35;
+
+  color: #00695c;
+}
+
+.rescue-centre-row {
+  display: flex;
+  flex-direction: column;
+
+  margin-bottom: 9px;
+}
+
+.rescue-centre-row strong {
+  margin-bottom: 2px;
+
+  font-size: 12px;
+
+  color: #555555;
+}
+
+.rescue-centre-row span,
+.rescue-centre-row a {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.rescue-centre-row a {
+  text-decoration: none;
+
+  color: #00695c;
+}
+
+.rescue-centre-warning {
+  margin-top: 12px;
+
+  padding: 9px 10px;
+
+  border-radius: 6px;
+
+  background: #f2f7f5;
+
+  font-size: 11px;
+  line-height: 1.45;
+
+  color: #555555;
+}

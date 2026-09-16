@@ -18,8 +18,6 @@ body {
 .layer-control {
   position: absolute;
   top: 20px;
-  right: 20px;
-  left: auto;
   z-index: 1000;
   width: 340px;
 }
